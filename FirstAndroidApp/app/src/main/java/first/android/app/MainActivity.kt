@@ -12,9 +12,12 @@ import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import first.android.app.ui.theme.FirstAndroidAppTheme
+import first.android.app.ui.theme.Purple200
 import java.time.format.TextStyle
 
 class MainActivity : ComponentActivity() {
@@ -28,7 +31,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colors.background
                 ) {
                     Row (
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.offset(y = 100.dp).shadow(10.dp)
                     ) {
                         val fahrenheitTextState = remember { mutableStateOf(TextFieldValue()) }
                         val celsiusTextState = remember { mutableStateOf(TextFieldValue()) }
