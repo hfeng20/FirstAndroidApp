@@ -1,17 +1,21 @@
 package first.android.app
 
+import android.app.ActivityOptions
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
+import android.widget.EditText
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.*
+import androidx.compose.ui.*
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import first.android.app.ui.theme.FirstAndroidAppTheme
+import java.time.format.TextStyle
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,11 +27,64 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    Text("hello world")
+                    Row (
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        val fahrenheitTextState = remember { mutableStateOf(TextFieldValue()) }
+                        val celsiusTextState = remember { mutableStateOf(TextFieldValue()) }
+
+                        val fahrenheitTextField = TextField(
+                            modifier = Modifier.fillMaxWidth(0.5f),
+                            value = fahrenheitTextState.value,
+                            onValueChange = {
+                                fahrenheitTextState.value = it
+                                if(isNumeric(it.text)) {
+                                    celsiusTextState.value = TextFieldValue(calculateConversion(fahrenheitTextState.value.text.toDouble(), false).toString())
+                                }
+                                else {
+                                    celsiusTextState.value = TextFieldValue("Err")
+                                }
+                            }
+                        )
+
+
+
+                        val celsiusTextField = TextField(
+                            modifier = Modifier.fillMaxWidth(1.0f),
+                            value = celsiusTextState.value,
+                            onValueChange = {
+                                celsiusTextState.value = it
+                                if(isNumeric(it.text)) {
+                                    fahrenheitTextState.value = TextFieldValue(calculateConversion(celsiusTextState.value.text.toDouble(), true).toString())
+                                }
+                                else {
+                                    fahrenheitTextState.value = TextFieldValue("Err")
+                                }
+                            }
+                        )
+
+                    }
                 }
             }
         }
     }
+}
+fun isNumeric(value: String): Boolean {
+    if(value.isEmpty()) {
+        return false
+    }
+    return value.toDoubleOrNull() != null
+}
+
+fun calculateConversion(value: Double, toCelsius: Boolean): Double {
+    if(toCelsius) {
+        return (9.0/5.0 * value) + 32.0
+    }
+    return (value - 32.0) * 5.0/9.0
+}
+
+fun test() {
+    println("")
 }
 
 @Preview(showBackground = true)
