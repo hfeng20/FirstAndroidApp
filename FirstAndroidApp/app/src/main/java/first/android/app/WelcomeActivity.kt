@@ -1,10 +1,12 @@
 package first.android.app
 
+import android.app.ActivityOptions
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
@@ -27,7 +29,8 @@ class WelcomeActivity : ComponentActivity() {
                         onClick = {
                             //val intent = Intent(Intent.ACTION_VIEW)
                             val intent = Intent(this@WelcomeActivity, MainActivity::class.java);
-                            startActivity(intent)
+                            startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(this).toBundle())
+                            overridePendingTransition(R.anim.slide_in_right, android.R.anim.fade_out)
                             this.finish()
                         },
                         modifier = Modifier.fillMaxSize()
