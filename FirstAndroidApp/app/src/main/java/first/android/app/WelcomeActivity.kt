@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import first.android.app.ui.theme.FirstAndroidAppTheme
 import first.android.app.ui.theme.White
@@ -43,11 +44,18 @@ class WelcomeActivity : ComponentActivity() {
                                 overridePendingTransition(R.anim.slide_in_right, android.R.anim.fade_out)
                                 this@WelcomeActivity.finish()
                             },
-                            modifier = Modifier.fillMaxWidth().fillMaxHeight(.2f)
+                            modifier = Modifier.fillMaxSize()
                         ) {
-                            Text("Harry Feng's First Android App", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = White)
+                            Text("Harry Feng's First Android App", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = White, modifier = Modifier.offset(y = -(50.dp)))
                         }
-                        Text("Tap anywhere to proceed...", fontSize = 16.sp, color = White)
+                    }
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+
+                    ) {
+                        Text("Tap anywhere to continue")
                     }
                 }
             }
