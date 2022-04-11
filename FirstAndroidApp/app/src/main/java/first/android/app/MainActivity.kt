@@ -244,14 +244,9 @@ class UserViewModel: ViewModel() {
     }
 }
 
-data class UserResponse(
-    val results: User
-    )
+data class UserResponse(val results: User)
 
-data class User(
-    val name: String,
-    val email: String
-    )
+data class User(val name: String, val email: String)
 
 @Composable
 fun Navigation(navController: NavHostController) {
