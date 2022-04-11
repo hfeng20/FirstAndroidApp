@@ -1,6 +1,7 @@
 package first.android.app
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -15,9 +16,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -25,6 +26,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import first.android.app.ui.theme.FirstAndroidAppTheme
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.GET
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,6 +42,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
 fun isNumeric(value: String): Boolean {
     if(value.isEmpty()) {
         return false
@@ -169,23 +178,36 @@ fun ConversionsScreen() {
 }
 
 @Composable
-fun UsersScreen() {
+fun getUserData() {
+    var data = MutableLiveData<List<User>>()
+    val service = Retrofit.Builder().baseUrl("https://jsonplaceholder.typicode.com").addConverterFactory(GsonConverterFactory.create()).build().create(UserService::class.java)
+    service.getUsers().enqueue(object: Callback<List<User>> {
+        override fun onFailure(call: Call<List<User>>, t: Throwable) {
+            Log.d("debug", "An error happened: " + t.message)
+        }
+
+        override fun onResponse(call: Call<List<User>>, response: Response<List<User>>) {
+            Log.d("debug", response.body().toString())
+            data.value = response.body()
+        }
+    })
+    Log.d("debug", data.value.toString())
+//    Log.d("debug", "test")
+//    data.value = service.getUsers().execute().body()
+//    data.value?.get(1)?.let { Log.d("debug", it.name) }
 
 }
 
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    FirstAndroidAppTheme {
-    }
-    MainScreen()
+interface UserService {
+    @GET("/users")
+    fun getUsers(): Call<List<User>>
 }
 
-@Preview(showBackground = true)
-@Composable
-fun TopBarPreview() {
-    TopBar()
-}
+data class UserResponse(
+    val results: User
+    )
+
+data class User(val name: String, val email: String)
 
 @Composable
 fun Navigation(navController: NavHostController) {
@@ -194,7 +216,7 @@ fun Navigation(navController: NavHostController) {
             ConversionsScreen()
         }
         composable(NavigationItem.Users.route) {
-            UsersScreen()
+            getUserData()
         }
     }
 }
