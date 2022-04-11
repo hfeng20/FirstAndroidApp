@@ -1,10 +1,11 @@
 package first.android.app
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -13,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
@@ -35,8 +37,10 @@ class MainActivity : ComponentActivity() {
         var vm = UserViewModel()
         super.onCreate(savedInstanceState)
         setContent {
-//            MainScreen()
-            UserView(vm)
+//            FirstAndroidAppTheme() {
+//                UserView(vm)
+//            }
+            MainScreen()
         }
     }
 }
@@ -228,13 +232,11 @@ class UserViewModel: ViewModel() {
         get() = _userList
 
     fun getUserList() {
-        Log.d("debug", "test")
         viewModelScope.launch {
             val userService = UserService.getInstance()
             try {
                 _userList.clear()
                 _userList.addAll(userService.getUsers())
-
             } catch (e: Exception) {
                 errorMessage = e.message.toString()
             }
@@ -253,12 +255,13 @@ data class User(
 
 @Composable
 fun Navigation(navController: NavHostController) {
+    var vm = UserViewModel()
     NavHost(navController, startDestination = NavigationItem.Conversion.route) {
         composable(NavigationItem.Conversion.route) {
             ConversionsScreen()
         }
         composable(NavigationItem.Users.route) {
-
+            UserView(vm)
         }
     }
 }
@@ -269,36 +272,43 @@ fun UserView(vm: UserViewModel) {
         vm.getUserList()
     })
     if (vm.errorMessage.isEmpty()) {
-        Log.d("debug", vm.userList.toString())
-        Text(vm.userList.get(0).name)
-//        Column(modifier = Modifier.padding(16.dp)) {
-//            LazyColumn(modifier = Modifier.fillMaxHeight()) {
-//                vm.userList.forEach { user ->
-//                    Column {
-//                        Row(
-//                            modifier = Modifier
-//                                .fillMaxWidth()
-//                                .padding(16.dp),
-//                            horizontalArrangement = Arrangement.SpaceBetween
-//                        ) {
-//                            Box(
-//                                modifier = Modifier
-//                                    .fillMaxWidth()
-//                                    .padding(0.dp, 0.dp, 16.dp, 0.dp)
-//                            ) {
-//                                Text(
-//                                    user.name,
-//                                    maxLines = 1,
-//                                    overflow = TextOverflow.Ellipsis
-//                                )
-//                            }
-//                            Spacer(modifier = Modifier.width(16.dp))
-//                        }
-//                        Divider()
-//                    }
-//                }
-//            }
-//        }
+        Column(modifier = Modifier.padding(16.dp)) {
+            vm.userList.forEach { user ->
+                Column {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(.3f).padding(0.dp, 0.dp, 10.dp,0.dp).border(width = 0.8.dp, color = Color.White.copy(alpha = 0.5f), shape= RoundedCornerShape(0.dp))
+                        ) {
+                            Text(
+                                user.name,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(1.0f).padding(0.dp, 0.dp, 10.dp,0.dp).border(width = 0.8.dp, color = Color.White.copy(alpha = 0.5f), shape= RoundedCornerShape(0.dp))
+                        ) {
+                            Text(
+                                user.email,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                    }
+                    Divider()
+                }
+            }
+        }
     } else {
         Text(vm.errorMessage)
     }
