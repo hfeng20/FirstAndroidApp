@@ -6,10 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,7 +15,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -26,9 +24,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import first.android.app.ui.theme.FirstAndroidAppTheme
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
@@ -36,9 +32,11 @@ import retrofit2.http.GET
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        var vm = UserViewModel()
         super.onCreate(savedInstanceState)
         setContent {
-            MainScreen()
+//            MainScreen()
+            UserView(vm)
         }
     }
 }
@@ -179,35 +177,79 @@ fun ConversionsScreen() {
 
 @Composable
 fun getUserData() {
-    var data = MutableLiveData<List<User>>()
-    val service = Retrofit.Builder().baseUrl("https://jsonplaceholder.typicode.com").addConverterFactory(GsonConverterFactory.create()).build().create(UserService::class.java)
-    service.getUsers().enqueue(object: Callback<List<User>> {
-        override fun onFailure(call: Call<List<User>>, t: Throwable) {
-            Log.d("debug", "An error happened: " + t.message)
-        }
-
-        override fun onResponse(call: Call<List<User>>, response: Response<List<User>>) {
-            Log.d("debug", response.body().toString())
-            data.value = response.body()
-        }
-    })
-    Log.d("debug", data.value.toString())
+//    var data = MutableLiveData<List<User>>()
+//    var retrieved = false
+//    val service = Retrofit.Builder().baseUrl("https://jsonplaceholder.typicode.com").addConverterFactory(GsonConverterFactory.create()).build().create(UserService::class.java)
+//    service.getUsers().enqueue(object: Callback<List<User>> {
+//        override fun onFailure(call: Call<List<User>>, t: Throwable) {
+//            Log.d("debug", "An error happened: " + t.message)
+//        }
+//
+//        override fun onResponse(call: Call<List<User>>, response: Response<List<User>>) {
+//            Log.d("debug", response.body().toString())
+//            data.value = response.body()
+//            retrieved = true
+//        }
+//    })
+//    Log.d("debug", data.value.toString())
+//    while (retrieved.value == false) {
+//        Log.d("debug", (retrieved.value).toString())
+//    }
 //    Log.d("debug", "test")
 //    data.value = service.getUsers().execute().body()
 //    data.value?.get(1)?.let { Log.d("debug", it.name) }
 
 }
 
+const val BASE_URL = "https://jsonplaceholder.typicode.com/"
+
 interface UserService {
     @GET("/users")
-    fun getUsers(): Call<List<User>>
+    suspend fun getUsers(): List<User>
+
+    companion object {
+        var userService: UserService? = null
+        fun getInstance(): UserService {
+            if(userService == null) {
+                userService = Retrofit.Builder()
+                    .baseUrl(BASE_URL)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build().create(UserService::class.java)
+            }
+            return userService!!
+        }
+    }
+}
+
+class UserViewModel: ViewModel() {
+    private val _userList = mutableListOf<User>()
+    var errorMessage: String by mutableStateOf("")
+    val userList: List<User>
+        get() = _userList
+
+    fun getUserList() {
+        Log.d("debug", "test")
+        viewModelScope.launch {
+            val userService = UserService.getInstance()
+            try {
+                _userList.clear()
+                _userList.addAll(userService.getUsers())
+
+            } catch (e: Exception) {
+                errorMessage = e.message.toString()
+            }
+        }
+    }
 }
 
 data class UserResponse(
     val results: User
     )
 
-data class User(val name: String, val email: String)
+data class User(
+    val name: String,
+    val email: String
+    )
 
 @Composable
 fun Navigation(navController: NavHostController) {
@@ -216,7 +258,48 @@ fun Navigation(navController: NavHostController) {
             ConversionsScreen()
         }
         composable(NavigationItem.Users.route) {
-            getUserData()
+
         }
+    }
+}
+
+@Composable
+fun UserView(vm: UserViewModel) {
+    LaunchedEffect(Unit, block = {
+        vm.getUserList()
+    })
+    if (vm.errorMessage.isEmpty()) {
+        Log.d("debug", vm.userList.toString())
+        Text(vm.userList.get(0).name)
+//        Column(modifier = Modifier.padding(16.dp)) {
+//            LazyColumn(modifier = Modifier.fillMaxHeight()) {
+//                vm.userList.forEach { user ->
+//                    Column {
+//                        Row(
+//                            modifier = Modifier
+//                                .fillMaxWidth()
+//                                .padding(16.dp),
+//                            horizontalArrangement = Arrangement.SpaceBetween
+//                        ) {
+//                            Box(
+//                                modifier = Modifier
+//                                    .fillMaxWidth()
+//                                    .padding(0.dp, 0.dp, 16.dp, 0.dp)
+//                            ) {
+//                                Text(
+//                                    user.name,
+//                                    maxLines = 1,
+//                                    overflow = TextOverflow.Ellipsis
+//                                )
+//                            }
+//                            Spacer(modifier = Modifier.width(16.dp))
+//                        }
+//                        Divider()
+//                    }
+//                }
+//            }
+//        }
+    } else {
+        Text(vm.errorMessage)
     }
 }
